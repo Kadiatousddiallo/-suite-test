@@ -1,276 +1,196 @@
-\# SUITE — Module de statistiques des publications
+SUITE – Module de statistiques des publications
 
+1. Présentation
 
+Ce projet a été réalisé dans le cadre du test technique SUITE.
 
-\## Présentation
+Il permet de consulter les statistiques des publications d'un client sur quatre réseaux sociaux : Instagram, Facebook, TikTok et LinkedIn.
 
+L'application affiche les impressions, les interactions, le taux d'engagement et les meilleures publications.
 
+2. Technologies utilisées
 
-Application web de suivi des statistiques des publications sur les réseaux sociaux pour les agences marketing.
+Go : développement de l'API REST.
 
+PostgreSQL : stockage des clients et des publications.
 
+pgx : connexion entre Go et PostgreSQL.
 
-Le projet permet de consulter les performances des publications par client et par plateforme : Instagram, Facebook, TikTok et LinkedIn.
+Next.js et TypeScript : développement de l'interface.
 
+Chart.js : affichage des statistiques sous forme de graphique.
 
+Docker Compose : lancement des différents services.
 
-\## Technologies utilisées
+golang-migrate : gestion des migrations SQL.
 
+3. Lancement du projet sans dockerisation complète
 
+Dans cette première approche, les composants sont lancés séparément.
 
-\### Backend
+Prérequis
 
-\- Go
+Go installé.
 
-\- API REST avec `net/http`
+Node.js et npm installés.
 
-\- PostgreSQL
+PostgreSQL installé et démarré.
 
-\- pgx
+Étape 1 : préparer la base de données
 
+Créer un utilisateur et une base de données PostgreSQL :
 
+CREATE USER suite_user WITH PASSWORD 'suite_password';
+CREATE DATABASE suite_db OWNER suite_user;
 
-\### Frontend
+Exécuter ensuite le script SQL initial depuis la racine du projet :
 
-\- Next.js
+psql -U suite_user -d suite_db -f database/init.sql
 
-\- React
+Étape 2 : lancer l'API Go
 
-\- TypeScript
-
-\- Tailwind CSS
-
-
-
-\### Infrastructure
-
-\- Docker
-
-\- Docker Compose
-
-
-
-\## Fonctionnalités
-
-
-
-\- Consultation des statistiques d'un client.
-
-\- Filtrage des statistiques par période.
-
-\- Répartition des performances par plateforme.
-
-\- Calcul du taux d'engagement.
-
-\- Classement des meilleures publications.
-
-\- Gestion des erreurs et des états de chargement.
-
-
-
-\## Structure du projet
-
-
-
-```text
-
-suite-test/
-
-├── backend/
-
-│   ├── internal/
-
-│   │   ├── database/
-
-│   │   ├── handlers/
-
-│   │   └── models/
-
-│   ├── go.mod
-
-│   └── main.go
-
-├── database/
-
-│   └── init.sql
-
-├── frontend/
-
-│   └── src/
-
-│       └── app/
-
-├── docker-compose.yml
-
-└── README.md
-
-```
-
-
-
-\## Installation et lancement
-
-
-
-\### 1. Démarrer PostgreSQL
-
-
-
-À la racine du projet :
-
-
-
-```bash
-
-docker compose up -d
-
-```
-
-
-
-\### 2. Démarrer le backend Go
-
-
-
-Dans un autre terminal :
-
-
-
-```bash
+Dans un terminal :
 
 cd backend
+go mod download
+go test ./... -v
 
-go mod tidy
+Configurer l'adresse de la base de données dans Git Bash :
+
+export DATABASE_URL="postgres://suite_user:suite_password@localhost:5432/suite_db?sslmode=disable"
+
+Démarrer l'API :
 
 go run .
 
-```
+L'API est accessible sur http://localhost:8080.
 
+Étape 3 : lancer le frontend
 
-
-L'API est accessible sur :
-
-
-
-`http://localhost:8080`
-
-
-
-\### 3. Démarrer le frontend
-
-
-
-Dans un autre terminal :
-
-
-
-```bash
+Dans un deuxième terminal :
 
 cd frontend
-
 npm install
-
 npm run dev
 
-```
-
-
-
-L'application est accessible sur :
-
-
-
-`http://localhost:3000`
-
-
+L'application est accessible sur http://localhost:3000.
 
 Exemple de tableau de bord :
 
+http://localhost:3000/clients/1
 
+4. Lancement avec Docker Compose
 
-`http://localhost:3000/clients/1`
+Pour simplifier le démarrage, j'ai ensuite dockerisé le projet.
 
+Docker Compose permet de lancer PostgreSQL, l'API Go et le frontend avec une seule commande.
 
+Démarrer les services
 
-\## Endpoints API
+À la racine du projet :
 
+docker compose up -d --build
 
+Cette commande construit les images nécessaires et démarre les conteneurs.
 
-| Méthode | Endpoint | Description |
+Vérifier les services
 
-|---|---|---|
+docker compose ps -a
 
-| GET | `/clients/{id}/stats` | Statistiques d'un client |
+Vérifier les migrations
 
-| GET | `/clients/{id}/publications/top` | Meilleures publications |
+docker compose logs migrate
 
+Les migrations sont exécutées automatiquement avant le démarrage de l'API.
 
+Consulter les logs de l'API
 
-Exemple :
+docker compose logs api
 
+Accéder à l'application
 
+Frontend : http://localhost:3000/clients/1
 
-`GET /clients/1/stats?from=2026-10-01\&to=2026-10-31`
+API : http://localhost:8080
 
+PostgreSQL : localhost:5439
 
+Arrêter les services
 
-\## Tests
+docker compose down
 
+Cette commande arrête les conteneurs sans supprimer les données de la base.
 
+Le volume PostgreSQL est conservé. Il ne faut pas utiliser docker compose down -v si l'on souhaite garder les données.
 
-Pour exécuter les tests du backend :
+5. Endpoints de l'API
 
+Méthode
 
+Endpoint
 
-```bash
+Description
+
+GET
+
+/clients/{id}/stats
+
+Statistiques d'un client
+
+GET
+
+/clients/{id}/publications/top
+
+Meilleures publications
+
+Exemples :
+
+curl "http://localhost:8080/clients/1/stats?from=2026-10-01&to=2026-10-31"
+
+curl "http://localhost:8080/clients/1/publications/top?limit=3"
+
+Le filtre par dates est facultatif. La limite des meilleures publications est de 5 par défaut et ne peut pas dépasser 20.
+
+6. Tests
+
+Les tests du backend sont exécutés avec :
 
 cd backend
-
 go test ./... -v
 
-```
+Ils vérifient notamment :
+
+Le calcul du taux d'engagement.
+
+Le cas où les impressions sont nulles.
+
+Le fonctionnement du handler HTTP.
+
+Le rejet d'un identifiant invalide.
+
+J'ai également effectué des tests manuels des endpoints avec curl.
+
+7. Choix techniques
+
+J'ai choisi Go avec net/http pour construire une API simple, sans ajouter un framework dont je n'avais pas besoin.
+
+PostgreSQL permet de stocker les clients et leurs publications. J'ai utilisé pgx pour communiquer avec la base de données.
+
+Pour l'interface, j'ai utilisé Next.js et TypeScript. Chart.js permet de représenter les performances par plateforme.
+
+Enfin, Docker Compose facilite le lancement de toute l'application. Les migrations SQL permettent de créer et de faire évoluer la structure de la base de données de manière organisée.
+
+8. Ce que je n'ai pas eu le temps de réaliser
+
+Je n'ai pas réalisé le bonus de génération automatique de rapports avec une intelligence artificielle.
+
+Si j'avais eu plus de temps, j'aurais ajouté un endpoint Go qui récupère les statistiques du client.
 
 
+9. Temps réellement consacré
 
-\## Choix techniques
+Environ 4 jours ont été consacrés à ce test. Ce temps comprend le développement, les recherches et l'apprentissage des bases de Go à travers la documentation officielle, des tutoriels et des outils d'assistance comme Claude.
 
-
-
-\- Go avec `net/http` pour développer une API REST légère.
-
-\- PostgreSQL pour stocker les clients et les publications.
-
-\- pgx pour la connexion à PostgreSQL.
-
-\- Next.js et TypeScript pour construire l'interface.
-
-\- Docker Compose pour faciliter le démarrage de la base de données.
-
-
-
-\## Améliorations possibles
-
-
-
-\- Ajouter de nouveaux indicateurs statistiques.
-
-\- Améliorer la visualisation des données.
-
-\- Ajouter des fonctionnalités de reporting.
-
-
-
-\## Temps consacré
-
-
-
-À compléter avec le temps réellement consacré au test.
-
-
-
-\## Auteur
-
-
+10. Auteur
 
 Kadiatou Sadio Diallo
-
