@@ -1,0 +1,2 @@
+DELETE FROM publications WHERE id BETWEEN 1 AND 9;
+DELETE FROM clients WHERE id IN (1, 2);
