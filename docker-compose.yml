@@ -1,3 +1,4 @@
+
 services:
   db:
     image: postgres:16-alpine
@@ -11,12 +12,49 @@ services:
       - "5439:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U suite_user -d suite_db"]
       interval: 5s
       timeout: 5s
       retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.18.3
+    container_name: suite-test-migrate
+    restart: "no"
+    volumes:
+      - ./database/migrations:/migrations:ro
+    command:
+      - "-path=/migrations"
+      - "-database=postgres://suite_user:suite_password@db:5432/suite_db?sslmode=disable"
+      - "up"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ./backend
+    container_name: suite-test-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://suite_user:suite_password@db:5432/suite_db?sslmode=disable
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://api:8080
+    container_name: suite-test-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:
