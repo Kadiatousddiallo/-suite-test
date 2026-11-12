@@ -1,196 +1,127 @@
 SUITE – Module de statistiques des publications
 
-1. Présentation
-
+## 1. Présentation
 Ce projet a été réalisé dans le cadre du test technique SUITE.
 
 Il permet de consulter les statistiques des publications d'un client sur quatre réseaux sociaux : Instagram, Facebook, TikTok et LinkedIn.
 
 L'application affiche les impressions, les interactions, le taux d'engagement et les meilleures publications.
 
-2. Technologies utilisées
+## 2. Technologies et choix techniques
 
-Go : développement de l'API REST.
+- **Go et net/http :** utilisés pour développer l'API REST. J'ai choisi Go pour sa simplicité et ses performances, et `net/http` pour éviter d'ajouter un framework inutile.
+- **PostgreSQL et pgx :** PostgreSQL permet de stocker les clients et leurs publications. `pgx` assure la communication entre l'API Go et la base de données.
+- **Next.js et TypeScript :** utilisés pour développer le frontend. TypeScript permet de mieux structurer le code et de limiter les erreurs de typage.
+- **Chart.js :** utilisé pour représenter les statistiques par plateforme sous forme de graphiques.
+- **Docker Compose :** permet de lancer PostgreSQL, les migrations, l'API et le frontend avec une seule commande.
+- **golang-migrate :** utilisé pour gérer les migrations SQL et organiser la création et l'évolution de la base de données.
 
-PostgreSQL : stockage des clients et des publications.
 
-pgx : connexion entre Go et PostgreSQL.
+## 3. Lancer le projet en local
+Le projet peut être lancé de deux manières : d'abord sans Docker, en démarrant chaque composant séparément, puis avec Docker Compose, qui automatise le démarrage de l'ensemble.
+# A. Avant la dockerisation : lancement séparé des composants
+Prérequis :
+- Go installé.
+- Node.js et npm installés.
+- PostgreSQL installé et démarré.
+Étape 1 – Préparer la base de données
 
-Next.js et TypeScript : développement de l'interface.
-
-Chart.js : affichage des statistiques sous forme de graphique.
-
-Docker Compose : lancement des différents services.
-
-golang-migrate : gestion des migrations SQL.
-
-3. Lancement du projet sans dockerisation complète
-
-Dans cette première approche, les composants sont lancés séparément.
-
-Prérequis
-
-Go installé.
-
-Node.js et npm installés.
-
-PostgreSQL installé et démarré.
-
-Étape 1 : préparer la base de données
-
-Créer un utilisateur et une base de données PostgreSQL :
-
+Créer l'utilisateur et la base de données PostgreSQL :
 CREATE USER suite_user WITH PASSWORD 'suite_password';
 CREATE DATABASE suite_db OWNER suite_user;
-
-Exécuter ensuite le script SQL initial depuis la racine du projet :
-
+Depuis la racine du projet, exécuter le script SQL pour créer les tables et insérer les données de test :
 psql -U suite_user -d suite_db -f database/init.sql
+Étape 2 – Installer et lancer l'API Go
 
-Étape 2 : lancer l'API Go
-
-Dans un terminal :
-
+Dans un premier terminal :
 cd backend
 go mod download
-go test ./... -v
-
-Configurer l'adresse de la base de données dans Git Bash :
-
+Configurer la connexion à PostgreSQL (dans Git Bash) :
 export DATABASE_URL="postgres://suite_user:suite_password@localhost:5432/suite_db?sslmode=disable"
-
+Exécuter les tests du backend :
+go test ./... -v
 Démarrer l'API :
-
 go run .
-
 L'API est accessible sur http://localhost:8080.
 
-Étape 3 : lancer le frontend
+Étape 3 – Installer et lancer le frontend
 
 Dans un deuxième terminal :
-
 cd frontend
 npm install
 npm run dev
+Le frontend est accessible sur http://localhost:3000.
 
-L'application est accessible sur http://localhost:3000.
-
-Exemple de tableau de bord :
+Pour consulter le tableau de bord :
 
 http://localhost:3000/clients/1
 
-4. Lancement avec Docker Compose
+# B. Après la dockerisation : lancement avec Docker Compose
+J'ai ensuite utilisé Docker pour faciliter le lancement du projet et éviter de devoir démarrer chaque service manuellement.
 
-Pour simplifier le démarrage, j'ai ensuite dockerisé le projet.
+Docker Compose permet de démarrer PostgreSQL, les migrations, l'API et le frontend.
 
-Docker Compose permet de lancer PostgreSQL, l'API Go et le frontend avec une seule commande.
-
-Démarrer les services
+Étape 1 – Construire les images et démarrer les services
 
 À la racine du projet :
-
 docker compose up -d --build
+Cette commande construit les images Docker et démarre les différents conteneurs.
 
-Cette commande construit les images nécessaires et démarre les conteneurs.
-
-Vérifier les services
-
+Étape 2 – Vérifier l'état des services
 docker compose ps -a
-
-Vérifier les migrations
-
+Étape 3 – Vérifier l'exécution des migrations
 docker compose logs migrate
+Les migrations créent automatiquement les tables et insèrent les données de test avant le démarrage de l'API.
 
-Les migrations sont exécutées automatiquement avant le démarrage de l'API.
-
-Consulter les logs de l'API
-
+Étape 4 – Consulter les logs de l'API
 docker compose logs api
-
-Accéder à l'application
-
-Frontend : http://localhost:3000/clients/1
-
-API : http://localhost:8080
-
-PostgreSQL : localhost:5439
-
-Arrêter les services
-
+Étape 5 – Accéder à l'application
+- Frontend : http://localhost:3000/clients/1
+- API : http://localhost:8080
+- PostgreSQL : localhost:5439
+Étape 6 – Arrêter les services
 docker compose down
+Cette commande arrête et supprime les conteneurs, mais conserve le volume de données PostgreSQL.
 
-Cette commande arrête les conteneurs sans supprimer les données de la base.
+Attention : ne pas utiliser docker compose down -v si l'on souhaite conserver les données de la base.
 
-Le volume PostgreSQL est conservé. Il ne faut pas utiliser docker compose down -v si l'on souhaite garder les données.
-
-5. Endpoints de l'API
-
-Méthode
-
-Endpoint
-
-Description
-
-GET
-
-/clients/{id}/stats
-
-Statistiques d'un client
-
-GET
-
-/clients/{id}/publications/top
-
-Meilleures publications
-
-Exemples :
-
+## 4. Endpoints de l'API
+Méthode	Endpoint	Description
+GET	/clients/{id}/stats	Récupérer les statistiques d'un client
+GET	/clients/{id}/publications/top	Récupérer les meilleures publicationsExemples de requêtes :
 curl "http://localhost:8080/clients/1/stats?from=2026-10-01&to=2026-10-31"
 
 curl "http://localhost:8080/clients/1/publications/top?limit=3"
-
 Le filtre par dates est facultatif. La limite des meilleures publications est de 5 par défaut et ne peut pas dépasser 20.
 
-6. Tests
-
-Les tests du backend sont exécutés avec :
-
+## 5. Tests réalisés
+Pour lancer les tests du backend :
 cd backend
 go test ./... -v
-
-Ils vérifient notamment :
-
-Le calcul du taux d'engagement.
-
-Le cas où les impressions sont nulles.
-
-Le fonctionnement du handler HTTP.
-
-Le rejet d'un identifiant invalide.
-
+Les tests vérifient notamment :
+- Le calcul du taux d'engagement.
+- Le cas où les impressions sont nulles.
+- Le fonctionnement du handler HTTP.
+- Le rejet d'un identifiant invalide.
 J'ai également effectué des tests manuels des endpoints avec curl.
 
-7. Choix techniques
 
-J'ai choisi Go avec net/http pour construire une API simple, sans ajouter un framework dont je n'avais pas besoin.
+## 6. Fonctionnalité non réalisée et améliorations possibles
+Je n'ai pas eu le temps de réaliser le bonus de génération automatique de rapports avec une intelligence artificielle.
 
-PostgreSQL permet de stocker les clients et leurs publications. J'ai utilisé pgx pour communiquer avec la base de données.
+Pour l'ajouter, j'aurais développé un endpoint Go chargé de récupérer les statistiques d'un client, de préparer un résumé des indicateurs et d'envoyer ces informations à une API d'intelligence artificielle.
 
-Pour l'interface, j'ai utilisé Next.js et TypeScript. Chart.js permet de représenter les performances par plateforme.
+La clé API aurait été stockée dans une variable d'environnement afin de ne pas l'exposer dans le code.
 
-Enfin, Docker Compose facilite le lancement de toute l'application. Les migrations SQL permettent de créer et de faire évoluer la structure de la base de données de manière organisée.
+J'aurais également ajouté davantage de tests pour couvrir les différents cas d'erreur.
 
-8. Ce que je n'ai pas eu le temps de réaliser
+## 7. Temps réellement consacré
+Environ 5 jours.
 
-Je n'ai pas réalisé le bonus de génération automatique de rapports avec une intelligence artificielle.
+Ce temps comprend le développement, les recherches et l'apprentissage des bases de Go à travers la documentation officielle, des tutoriels et des outils d'assistance comme Claude.
 
-Si j'avais eu plus de temps, j'aurais ajouté un endpoint Go qui récupère les statistiques du client.
-
-
-9. Temps réellement consacré
-
-Environ 4 jours ont été consacrés à ce test. Ce temps comprend le développement, les recherches et l'apprentissage des bases de Go à travers la documentation officielle, des tutoriels et des outils d'assistance comme Claude.
-
-10. Auteur
-
+## 8. Auteur
 Kadiatou Sadio Diallo
+
+
+
