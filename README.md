@@ -111,10 +111,6 @@ Je n'ai pas eu le temps de réaliser le bonus de génération automatique de rap
 
 Pour l'ajouter, j'aurais développé un endpoint Go chargé de récupérer les statistiques d'un client, de préparer un résumé des indicateurs et d'envoyer ces informations à une API d'intelligence artificielle.
 
-La clé API aurait été stockée dans une variable d'environnement afin de ne pas l'exposer dans le code.
-
-J'aurais également ajouté davantage de tests pour couvrir les différents cas d'erreur.
-
 # 7. Temps réellement consacré
 Environ 5 jours.
 
