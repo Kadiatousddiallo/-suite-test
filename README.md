@@ -1,13 +1,13 @@
 SUITE – Module de statistiques des publications
 
-## 1. Présentation
+# 1. Présentation
 Ce projet a été réalisé dans le cadre du test technique SUITE.
 
 Il permet de consulter les statistiques des publications d'un client sur quatre réseaux sociaux : Instagram, Facebook, TikTok et LinkedIn.
 
 L'application affiche les impressions, les interactions, le taux d'engagement et les meilleures publications.
 
-## 2. Technologies et choix techniques
+# 2. Technologies et choix techniques
 
 - **Go et net/http :** utilisés pour développer l'API REST. J'ai choisi Go pour sa simplicité et ses performances, et `net/http` pour éviter d'ajouter un framework inutile.
 - **PostgreSQL et pgx :** PostgreSQL permet de stocker les clients et leurs publications. `pgx` assure la communication entre l'API Go et la base de données.
@@ -17,9 +17,9 @@ L'application affiche les impressions, les interactions, le taux d'engagement et
 - **golang-migrate :** utilisé pour gérer les migrations SQL et organiser la création et l'évolution de la base de données.
 
 
-## 3. Lancer le projet en local
+# 3. Lancer le projet en local
 Le projet peut être lancé de deux manières : d'abord sans Docker, en démarrant chaque composant séparément, puis avec Docker Compose, qui automatise le démarrage de l'ensemble.
-# A. Avant la dockerisation : lancement séparé des composants
+## A. Avant la dockerisation : lancement séparé des composants
 Prérequis :
 - Go installé.
 - Node.js et npm installés.
@@ -56,7 +56,7 @@ Pour consulter le tableau de bord :
 
 http://localhost:3000/clients/1
 
-# B. Après la dockerisation : lancement avec Docker Compose
+## B. Après la dockerisation : lancement avec Docker Compose
 J'ai ensuite utilisé Docker pour faciliter le lancement du projet et éviter de devoir démarrer chaque service manuellement.
 
 Docker Compose permet de démarrer PostgreSQL, les migrations, l'API et le frontend.
@@ -85,7 +85,7 @@ Cette commande arrête et supprime les conteneurs, mais conserve le volume de do
 
 Attention : ne pas utiliser docker compose down -v si l'on souhaite conserver les données de la base.
 
-## 4. Endpoints de l'API
+# 4. Endpoints de l'API
 Méthode	Endpoint	Description
 GET	/clients/{id}/stats	Récupérer les statistiques d'un client
 GET	/clients/{id}/publications/top	Récupérer les meilleures publicationsExemples de requêtes :
@@ -94,7 +94,7 @@ curl "http://localhost:8080/clients/1/stats?from=2026-10-01&to=2026-10-31"
 curl "http://localhost:8080/clients/1/publications/top?limit=3"
 Le filtre par dates est facultatif. La limite des meilleures publications est de 5 par défaut et ne peut pas dépasser 20.
 
-## 5. Tests réalisés
+# 5. Tests réalisés
 Pour lancer les tests du backend :
 cd backend
 go test ./... -v
@@ -106,7 +106,7 @@ Les tests vérifient notamment :
 J'ai également effectué des tests manuels des endpoints avec curl.
 
 
-## 6. Fonctionnalité non réalisée et améliorations possibles
+# 6. Fonctionnalité non réalisée et améliorations possibles
 Je n'ai pas eu le temps de réaliser le bonus de génération automatique de rapports avec une intelligence artificielle.
 
 Pour l'ajouter, j'aurais développé un endpoint Go chargé de récupérer les statistiques d'un client, de préparer un résumé des indicateurs et d'envoyer ces informations à une API d'intelligence artificielle.
@@ -115,12 +115,12 @@ La clé API aurait été stockée dans une variable d'environnement afin de ne p
 
 J'aurais également ajouté davantage de tests pour couvrir les différents cas d'erreur.
 
-## 7. Temps réellement consacré
+# 7. Temps réellement consacré
 Environ 5 jours.
 
 Ce temps comprend le développement, les recherches et l'apprentissage des bases de Go à travers la documentation officielle, des tutoriels et des outils d'assistance comme Claude.
 
-## 8. Auteur
+# 8. Auteur
 Kadiatou Sadio Diallo
 
 
